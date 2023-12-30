@@ -9,7 +9,7 @@ data class Game(val loader: String) {
         this.plays = gamePart.split(";").map {
             Play(it.split(",").associate {
                 val (number, color) = it.trim().split(" ")
-                color to number.toInt()})
+                color to number.toInt()} as MutableMap<String, Int>)
         }
     }
 
@@ -17,24 +17,41 @@ data class Game(val loader: String) {
         return this.plays.all { it.matches.none {
             validPlay.matches.get(it.key)!! < it.value } }
     }
-}
-class Play (var matches:Map<String,Int>)
 
-val maxPlayPart01 = Play(mapOf("red" to 12, "green" to 13, "blue" to 14))
+    fun minValid():Play {
+        return this.plays.reduce(::getBiggerPlay)
+    }
+
+
+    private fun getBiggerPlay(acc: Play, play: Play): Play {
+        play.matches.entries.forEach {
+            if(!acc.matches.contains(it.key) || acc.matches.getValue(it.key) < it.value)
+                acc.matches[it.key] = it.value
+        }
+        return acc
+    }
+}
+class Play (var matches:MutableMap<String,Int>)
+
+val maxPlayPart01 = Play(mutableMapOf("red" to 12, "green" to 13, "blue" to 14))
 fun main() {
     fun part1(input: List<String>) : Int {
-        val part1 = input.map { Game(it) }
-        val part2 = part1.filter { it.isValid(maxPlayPart01) }
-        return part2.sumOf { it.id }
+        return input
+            .map { Game(it) }
+            .filter { it.isValid(maxPlayPart01) }
+            .sumOf { it.id }
     }
 
     fun part2(input: List<String>) : Int {
-        return input.size
+        return input
+            .map { Game(it) }
+            .sumOf { it.minValid().matches.values.reduce { acc, i -> acc * i } }
     }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day02_test")
     check(part1(testInput) == 8)
+    check(part2(testInput) == 2286)
 
     val input = readInput("Day02")
     part1(input).println()
