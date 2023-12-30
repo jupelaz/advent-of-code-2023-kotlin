@@ -1,21 +1,22 @@
 data class Game(val loader: String) {
     val id:Int
-    val plays:List<Play>
+    private val plays:List<Play>
     init {
         val (idPart,gamePart) = loader.split(":")
         val (_,id) = idPart.split(" ")
         this.id = id.toInt()
 
-        this.plays = gamePart.split(";").map {
-            Play(it.split(",").associate {
+        this.plays = gamePart.split(";").map { play ->
+            Play(play.split(",").associate {
                 val (number, color) = it.trim().split(" ")
                 color to number.toInt()} as MutableMap<String, Int>)
         }
     }
 
     fun isValid(validPlay:Play):Boolean{
-        return this.plays.all { it.matches.none {
-            validPlay.matches.get(it.key)!! < it.value } }
+        return this.plays.all { play ->
+            play.matches.none {
+            validPlay.matches[it.key]!! < it.value } }
     }
 
     fun minValid():Play {
