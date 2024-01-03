@@ -1,43 +1,35 @@
 
 fun main() {
-    fun foundSymbolInCoord(list: List<String>, left: Int, right: Int, top: Int, bottom: Int): Boolean {
-        return list.subList(top, bottom + 1)
-            .joinToString(separator = "") { it.subSequence(left, right) }
-            .filter { !it.isDigit() || it != '.' }
-            .any { !it.isLetterOrDigit() }
-    }
-
-    fun foundSymbol(list: List<String>, listIndex: Int, start: Int, endOfDigit: Int): Boolean {
-        val leftIndex = if (start == 0) 0 else start - 1
-        val rightIndex = if (endOfDigit == list[listIndex].length) list[listIndex].length else endOfDigit + 1
-        val topIndex = if (listIndex == 0) 0 else listIndex - 1
-        val bottomIndex = if (listIndex == list.lastIndex) list.lastIndex else listIndex + 1
-
-        return foundSymbolInCoord(list,leftIndex,rightIndex,topIndex,bottomIndex)
-    }
-
-    fun getEndOfNumber(line: String, stringIndex: Int): Int {
-        var endIndex = stringIndex
-        while (line[endIndex].isDigit() && endIndex < line.lastIndex) {
-            endIndex += 1
-        }
-        return endIndex
-    }
 
     fun part1(input: List<String>) : Int {
-       var sum = 0
+
+       val set = mutableSetOf<Pair<Int, Int>>()
        input.forEachIndexed { listIndex, line ->
            line.forEachIndexed { stringIndex, c ->
-               if (c.isDigit()) {
-                   val endIndex = getEndOfNumber(line, stringIndex)
-                   if (foundSymbol(input,listIndex,stringIndex,endIndex)) {
-                       sum += line.subSequence(stringIndex, endIndex).toString().toInt()
-                   }
+                   if (!c.isDigit() && c != '.')
+                       for (dr in listIndex - 1..listIndex + 1)
+                           for (dc in stringIndex - 1..stringIndex + 1)
+                               if (dr >= 0 && dr <= input.lastIndex && dc >= 0 && dc <= input.first().lastIndex && input[dr][dc].isDigit()){
+                                   var rc = dc
+                                   while (rc > 0 && input[dr][rc - 1].isDigit())
+                                       rc -= 1
+                                   set.add(dr to rc)
+                               }
                }
-           }
        }
-        println(sum)
-       return sum
+
+       val ns = mutableListOf<Int>()
+       for  (a in set) {
+           val r = a.first
+           var c = a.second
+           var s = ""
+           while ((c < input[r].length) && input[r][c].isDigit()) {
+               s += input[r][c]
+               c++
+           }
+           ns.add(s.toInt())
+       }
+       return ns.sum()
     }
 
 
